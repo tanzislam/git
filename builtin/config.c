@@ -30,6 +30,7 @@ static int end_null;
 static int respect_includes_opt = -1;
 static struct config_options config_options;
 static int show_origin;
+static int read_stdin;
 
 #define ACTION_GET (1<<0)
 #define ACTION_GET_ALL (1<<1)
@@ -85,6 +86,7 @@ static struct option builtin_config_options[] = {
 	OPT_BOOL(0, "name-only", &omit_values, N_("show variable names only")),
 	OPT_BOOL(0, "includes", &respect_includes_opt, N_("respect include directives on lookup")),
 	OPT_BOOL(0, "show-origin", &show_origin, N_("show origin of config (file, standard input, blob, command line)")),
+	OPT_BOOL(0, "stdin", &read_stdin, N_("read list of keys/values to get from stdin")),
 	OPT_END(),
 };
 
@@ -230,6 +232,8 @@ static int get_value(const char *key_, const char *regex_)
 		if (regex_[0] == '!') {
 			do_not_match = 1;
 			regex_++;
+		} else {
+			do_not_match = 0;
 		}
 
 		regexp = (regex_t*)xmalloc(sizeof(regex_t));
@@ -255,17 +259,92 @@ static int get_value(const char *key_, const char *regex_)
 	free(values.items);
 
 free_strings:
-	free(key);
+	FREE_AND_NULL(key);
 	if (key_regexp) {
 		regfree(key_regexp);
-		free(key_regexp);
+		FREE_AND_NULL(key_regexp);
 	}
 	if (regexp) {
 		regfree(regexp);
-		free(regexp);
+		FREE_AND_NULL(regexp);
 	}
 
 	return ret;
+}
+
+static int get_type_specifier_from_stdin(void)
+{
+	int rc = 0;
+	struct strbuf type = STRBUF_INIT;
+	strbuf_getline(&type, stdin);
+	if (!strcmp(type.buf, ""))
+		types = 0;
+	else if (!strcmp(type.buf, "bool"))
+		types = TYPE_BOOL;
+	else if (!strcmp(type.buf, "int"))
+		types = TYPE_INT;
+	else if (!strcmp(type.buf, "bool-or-int"))
+		types = TYPE_BOOL_OR_INT;
+	else if (!strcmp(type.buf, "path"))
+		types = TYPE_PATH;
+	else {
+		error("Unknown type specifier in stdin: %s", type.buf);
+		rc = 1;
+	}
+	strbuf_release(&type);
+	return rc;
+}
+
+static int get_values_of_keys_from_stdin(void)
+{
+	struct strbuf key = STRBUF_INIT, regex = STRBUF_INIT;
+	int read_rc, get_value_rc = 0, regex_given;
+
+	/* Extract key (mandatory) */
+	while ((read_rc = strbuf_getline(&key, stdin)) != EOF) {
+		/* Extract type specifier (optional) */
+		int c = getc_unlocked(stdin);
+		types = 0;
+		if (c != EOF) {
+			ungetc(c, stdin);
+			if (c != '\0') {
+				get_value_rc = get_type_specifier_from_stdin();
+				if (get_value_rc)
+					break;
+			}
+		}
+
+		/* Extract value regex (optional) */
+		regex_given = 0;
+		c = getc_unlocked(stdin);
+		if (c != EOF) {
+			ungetc(c, stdin);
+			if (c != '\0') {
+				strbuf_getline(&regex, stdin);
+				regex_given = 1;
+			}
+		}
+
+		/* Operate */
+		if (regex_given)
+			get_value_rc = get_value(key.buf, regex.buf);
+		else
+			get_value_rc = get_value(key.buf, NULL);
+		if (get_value_rc)
+			break;
+
+		/* Extract and enforce '\0' record separator */
+		c = getc_unlocked(stdin);
+		if (c != EOF && c != '\0') {
+			error("Record separator (NUL) or EOF expected, "
+			      "but found: %c", c);
+			get_value_rc = 1;
+			break;
+		}
+	}
+	strbuf_release(&key);
+	strbuf_release(&regex);
+	return get_value_rc;
 }
 
 static char *normalize_value(const char *key, const char *value)
@@ -586,6 +665,21 @@ int cmd_config(int argc, const char **argv, const char *prefix)
 		usage_with_options(builtin_config_usage, builtin_config_options);
 	}
 
+	if (read_stdin) {
+		if (!(actions & (ACTION_GET|ACTION_GET_ALL|ACTION_GET_REGEXP))) {
+			error("--stdin is only applicable to --get, --get-all, and --get-regexp");
+			usage_with_options(builtin_config_usage, builtin_config_options);
+		}
+		if (given_config_source.use_stdin) {
+			error("--stdin cannot be used if config is being read from stdin");
+			usage_with_options(builtin_config_usage, builtin_config_options);
+		}
+		if (types) {
+			error("--stdin cannot be used with type specifier options");
+			usage_with_options(builtin_config_usage, builtin_config_options);
+		}
+	}
+
 	if (actions == ACTION_LIST) {
 		check_argc(argc, 0, 0);
 		if (config_with_options(show_all_config, NULL,
@@ -664,20 +758,36 @@ int cmd_config(int argc, const char **argv, const char *prefix)
 							      argv[0], value, argv[2], 1);
 	}
 	else if (actions == ACTION_GET) {
-		check_argc(argc, 1, 2);
-		return get_value(argv[0], argv[1]);
+		if (read_stdin) {
+			check_argc(argc, 0, 0);
+			return get_values_of_keys_from_stdin();
+		}
+		else {
+			check_argc(argc, 1, 2);
+			return get_value(argv[0], argv[1]);
+		}
 	}
 	else if (actions == ACTION_GET_ALL) {
 		do_all = 1;
-		check_argc(argc, 1, 2);
-		return get_value(argv[0], argv[1]);
+		if (read_stdin) {
+			check_argc(argc, 0, 0);
+			return get_values_of_keys_from_stdin();
+		} else {
+			check_argc(argc, 1, 2);
+			return get_value(argv[0], argv[1]);
+		}
 	}
 	else if (actions == ACTION_GET_REGEXP) {
 		show_keys = 1;
 		use_key_regexp = 1;
 		do_all = 1;
-		check_argc(argc, 1, 2);
-		return get_value(argv[0], argv[1]);
+		if (read_stdin) {
+			check_argc(argc, 0, 0);
+			return get_values_of_keys_from_stdin();
+		} else {
+			check_argc(argc, 1, 2);
+			return get_value(argv[0], argv[1]);
+		}
 	}
 	else if (actions == ACTION_GET_URLMATCH) {
 		check_argc(argc, 2, 2);

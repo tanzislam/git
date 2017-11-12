@@ -13,8 +13,11 @@ SYNOPSIS
 'git config' [<file-option>] [type] --add name value
 'git config' [<file-option>] [type] --replace-all name value [value_regex]
 'git config' [<file-option>] [type] [--show-origin] [-z|--null] --get name [value_regex]
+'git config' [<file-option>] [type] [--show-origin] [-z|--null] --get --stdin
 'git config' [<file-option>] [type] [--show-origin] [-z|--null] --get-all name [value_regex]
+'git config' [<file-option>] [type] [--show-origin] [-z|--null] --get-all --stdin
 'git config' [<file-option>] [type] [--show-origin] [-z|--null] [--name-only] --get-regexp name_regex [value_regex]
+'git config' [<file-option>] [type] [--show-origin] [-z|--null] [--name-only] --get-regexp --stdin
 'git config' [<file-option>] [type] [-z|--null] --get-urlmatch name URL
 'git config' [<file-option>] --unset name [value_regex]
 'git config' [<file-option>] --unset-all name [value_regex]
@@ -94,6 +97,23 @@ OPTIONS
 	case-sensitive and done against a canonicalized version of the key
 	in which section and variable names are lowercased, but subsection
 	names are not.
+
+--stdin::
+	When used with `--get`, `--get-all`, or `--get-regexp`, read a list
+	of names to be retrieved (each optionally with a type specifier and
+	a value regex) from standard input.  The key, type specifier, and
+	value regex of each list entry must be newline-terminated, and the
+	list entries themselves must be delimited by the null character.
+	Returns immediately upon the first error encountered, without
+	proceeding with the remaining input.
++
+Recognized type specifiers are 'bool', 'int', 'bool-or-int' and 'path'.
+If a null character is encountered without a newline immediately
+preceding it, then it is considered part of the current field.
++
+This option cannot be used alongside any type specifier option on the
+command line, or when the `--file` option is used to read the config
+from standard input.)
 
 --get-urlmatch name URL::
 	When given a two-part name section.key, the value for
