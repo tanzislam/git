@@ -435,9 +435,9 @@ test_expect_success 'fsck notices submodule entry pointing to null sha1' '
 '
 
 while read name path pretty; do
-	while read mode type; do
-		: "${pretty:=$path}"
-		test_expect_success "fsck notices $pretty as $type" '
+  while read mode type; do
+    : "${pretty:=$path}"
+    test_expect_success "fsck notices $pretty as $type" '
 		(
 			git init $name-$type &&
 			cd $name-$type &&
@@ -452,10 +452,10 @@ while read name path pretty; do
 			git fsck 2>out &&
 			test_i18ngrep "warning.*tree $bad_tree" out
 		)'
-	done <<-\EOF
-	100644 blob
-	040000 tree
-	EOF
+  done <<-\EOF
+100644 blob
+040000 tree
+EOF
 done <<-EOF
 dot .
 dotdot ..
@@ -505,22 +505,22 @@ test_expect_success 'NUL in commit' '
 # create a static test repo which is broken by omitting
 # one particular object ($1, which is looked up via rev-parse
 # in the new repository).
-create_repo_missing () {
-	rm -rf missing &&
-	git init missing &&
-	(
-		cd missing &&
-		git commit -m one --allow-empty &&
-		mkdir subdir &&
-		echo content >subdir/file &&
-		git add subdir/file &&
-		git commit -m two &&
-		unrelated=$(echo unrelated | git hash-object --stdin -w) &&
-		git tag -m foo tag "$unrelated" &&
-		sha1=$(git rev-parse --verify "$1") &&
-		path=$(echo "$sha1" | sed 's|..|&/|') &&
-		rm .git/objects/"$path"
-	)
+create_repo_missing() {
+  rm -rf missing &&
+    git init missing &&
+    (
+      cd missing &&
+        git commit -m one --allow-empty &&
+        mkdir subdir &&
+        echo content >subdir/file &&
+        git add subdir/file &&
+        git commit -m two &&
+        unrelated=$(echo unrelated | git hash-object --stdin -w) &&
+        git tag -m foo tag "$unrelated" &&
+        sha1=$(git rev-parse --verify "$1") &&
+        path=$(echo "$sha1" | sed 's|..|&/|') &&
+        rm .git/objects/"$path"
+    )
 }
 
 test_expect_success 'fsck notices missing blob' '
@@ -786,8 +786,8 @@ test_expect_success 'bogus head does not fallback to all heads' '
 
 # Corrupt the checksum on the index.
 # Add 1 to the last byte in the SHA.
-corrupt_index_checksum () {
-    perl -w -e '
+corrupt_index_checksum() {
+  perl -w -e '
 	use Fcntl ":seek";
 	open my $fh, "+<", ".git/index" or die "open: $!";
 	binmode $fh;

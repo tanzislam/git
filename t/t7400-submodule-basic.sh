@@ -90,22 +90,21 @@ test_expect_success 'setup - repository to add submodules to' '
 submodurl=$(pwd -P)
 
 listbranches() {
-	git for-each-ref --format='%(refname)' 'refs/heads/*'
+  git for-each-ref --format='%(refname)' 'refs/heads/*'
 }
 
 inspect() {
-	dir=$1 &&
-	dotdot="${2:-..}" &&
-
-	(
-		cd "$dir" &&
-		listbranches >"$dotdot/heads" &&
-		{ git symbolic-ref HEAD || :; } >"$dotdot/head" &&
-		git rev-parse HEAD >"$dotdot/head-sha1" &&
-		git update-index --refresh &&
-		git diff-files --exit-code &&
-		git clean -n -d -x >"$dotdot/untracked"
-	)
+  dir=$1 &&
+    dotdot="${2:-..}" &&
+    (
+      cd "$dir" &&
+        listbranches >"$dotdot/heads" &&
+        { git symbolic-ref HEAD || :; } >"$dotdot/head" &&
+        git rev-parse HEAD >"$dotdot/head-sha1" &&
+        git update-index --refresh &&
+        git diff-files --exit-code &&
+        git clean -n -d -x >"$dotdot/untracked"
+    )
 }
 
 test_expect_success 'submodule add' '
@@ -377,9 +376,9 @@ test_expect_success 'init should register submodule url in .git/config' '
 	test_cmp expect url
 '
 
-test_failure_with_unknown_submodule () {
-	test_must_fail git submodule "$1" no-such-submodule 2>output.err &&
-	test_i18ngrep "^error: .*no-such-submodule" output.err
+test_failure_with_unknown_submodule() {
+  test_must_fail git submodule "$1" no-such-submodule 2>output.err &&
+    test_i18ngrep "^error: .*no-such-submodule" output.err
 }
 
 test_expect_success 'init should fail with unknown submodule' '

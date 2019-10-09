@@ -5,13 +5,12 @@
 
 test_description='test git fast-import utility'
 . ./test-lib.sh
-. "$TEST_DIRECTORY"/diff-lib.sh ;# test-lib chdir's into trash
+. "$TEST_DIRECTORY"/diff-lib.sh # test-lib chdir's into trash
 
-verify_packs () {
-	for p in .git/objects/pack/*.pack
-	do
-		git verify-pack "$@" "$p" || return
-	done
+verify_packs() {
+  for p in .git/objects/pack/*.pack; do
+    git verify-pack "$@" "$p" || return
+  done
 }
 
 file2_data='file2
@@ -2253,7 +2252,6 @@ test_expect_success 'R: import marks prefers commandline marks file over the str
 	test_cmp marks.out marks.new
 '
 
-
 test_expect_success 'R: multiple --import-marks= should be honoured' '
 	cat >input <<-EOF &&
 	feature import-marks=nonexistent.marks
@@ -2904,7 +2902,6 @@ test_expect_success 'S: from with garbage after mark must fail' '
 	test_i18ngrep "after mark" err
 '
 
-
 #
 # merge
 #
@@ -3115,61 +3112,57 @@ test_expect_success 'U: validate root delete result' '
 # fast-import terminates (and thus writes out its state), check that the
 # fast-import process is still running using background_import_still_running
 # *after* evaluating the test conditions.
-background_import_then_checkpoint () {
-	options=$1
-	input_file=$2
+background_import_then_checkpoint() {
+  options=$1
+  input_file=$2
 
-	mkfifo V.input
-	exec 8<>V.input
-	rm V.input
+  mkfifo V.input
+  exec 8<>V.input
+  rm V.input
 
-	mkfifo V.output
-	exec 9<>V.output
-	rm V.output
+  mkfifo V.output
+  exec 9<>V.output
+  rm V.output
 
-	git fast-import "$options" <&8 >&9 &
-	echo $! >V.pid
-	# We don't mind if fast-import has already died by the time the test
-	# ends.
-	test_when_finished "
+  git fast-import "$options" <&8 >&9 &
+  echo $! >V.pid
+  # We don't mind if fast-import has already died by the time the test
+  # ends.
+  test_when_finished "
 		exec 8>&-; exec 9>&-;
 		kill $(cat V.pid) && wait $(cat V.pid)
 		true"
 
-	# Start in the background to ensure we adhere strictly to (blocking)
-	# pipes writing sequence. We want to assume that the write below could
-	# block, e.g. if fast-import blocks writing its own output to &9
-	# because there is no reader on &9 yet.
-	(
-		cat "$input_file"
-		echo "checkpoint"
-		echo "progress checkpoint"
-	) >&8 &
+  # Start in the background to ensure we adhere strictly to (blocking)
+  # pipes writing sequence. We want to assume that the write below could
+  # block, e.g. if fast-import blocks writing its own output to &9
+  # because there is no reader on &9 yet.
+  (
+    cat "$input_file"
+    echo "checkpoint"
+    echo "progress checkpoint"
+  ) >&8 &
 
-	error=1 ;# assume the worst
-	while read output <&9
-	do
-		if test "$output" = "progress checkpoint"
-		then
-			error=0
-			break
-		fi
-		# otherwise ignore cruft
-		echo >&2 "cruft: $output"
-	done
+  error=1 # assume the worst
+  while read output <&9; do
+    if test "$output" = "progress checkpoint"; then
+      error=0
+      break
+    fi
+    # otherwise ignore cruft
+    echo >&2 "cruft: $output"
+  done
 
-	if test "$error" -eq 1
-	then
-		false
-	fi
+  if test "$error" -eq 1; then
+    false
+  fi
 }
 
-background_import_still_running () {
-	if ! kill -0 "$(cat V.pid)"
-	then
-		echo >&2 "background fast-import terminated too early"
-		false
-	fi
+background_import_still_running() {
+  if ! kill -0 "$(cat V.pid)"; then
+    echo >&2 "background fast-import terminated too early"
+    false
+  fi
 }
 
 test_expect_success PIPE 'V: checkpoint helper does not get stuck with extra output' '
@@ -3254,14 +3247,14 @@ test_expect_success PIPE 'V: checkpoint updates tags after tag' '
 ###
 
 cat >>W-input <<-W_INPUT_END
-	commit refs/heads/W-branch
-	mark :1
-	author Full Name <user@company.tld> 1000000000 +0100
-	committer Full Name <user@company.tld> 1000000000 +0100
-	data 27
-	Intentionally empty commit
-	LFsget-mark :1
-	W_INPUT_END
+commit refs/heads/W-branch
+mark :1
+author Full Name <user@company.tld> 1000000000 +0100
+committer Full Name <user@company.tld> 1000000000 +0100
+data 27
+Intentionally empty commit
+LFsget-mark :1
+W_INPUT_END
 
 test_expect_success !MINGW 'W: get-mark & empty orphan commit with no newlines' '
 	sed -e s/LFs// W-input | tr L "\n" | git fast-import

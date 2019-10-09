@@ -8,8 +8,8 @@ test_description='Test run command'
 . ./test-lib.sh
 
 cat >hello-script <<-EOF
-	#!$SHELL_PATH
-	cat hello-script
+#!$SHELL_PATH
+cat hello-script
 EOF
 
 test_expect_success 'start_command reports ENOENT (slash)' '
@@ -30,7 +30,6 @@ test_expect_success 'run_command can run a command' '
 	test_cmp hello-script actual &&
 	test_must_be_empty err
 '
-
 
 test_lazy_prereq RUNS_COMMANDS_FROM_PWD '
 	write_script runs-commands-from-pwd <<-\EOF &&
@@ -162,14 +161,14 @@ test_expect_success 'run_command outputs ' '
 	test_cmp expect actual
 '
 
-test_trace () {
-	expect="$1"
-	shift
-	GIT_TRACE=1 test-tool run-command "$@" run-command true 2>&1 >/dev/null | \
-		sed -e 's/.* run_command: //' -e '/trace: .*/d' \
-			-e '/RUNTIME_PREFIX requested/d' >actual &&
-	echo "$expect true" >expect &&
-	test_cmp expect actual
+test_trace() {
+  expect="$1"
+  shift
+  GIT_TRACE=1 test-tool run-command "$@" run-command true 2>&1 >/dev/null |
+    sed -e 's/.* run_command: //' -e '/trace: .*/d' \
+      -e '/RUNTIME_PREFIX requested/d' >actual &&
+    echo "$expect true" >expect &&
+    test_cmp expect actual
 }
 
 test_expect_success 'GIT_TRACE with environment variables' '
