@@ -7,21 +7,21 @@
 #            2007 Trolltech ASA
 # License: MIT <http://www.opensource.org/licenses/mit-license.php>
 #
-import errno
 import ctypes
-import zlib
-import zipfile
-import stat
-import shutil
-import re
-import platform
-import time
-import tempfile
-import subprocess
+import errno
 import marshal
 import optparse
 import os
+import platform
+import re
+import shutil
+import stat
+import subprocess
 import sys
+import tempfile
+import time
+import zipfile
+import zlib
 
 if sys.hexversion < 0x02040000:
     # The limiter is the subprocess module
