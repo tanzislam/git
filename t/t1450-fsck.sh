@@ -412,7 +412,7 @@ test_expect_success 'force fsck to ignore double author' '
 '
 
 _bz='\0'
-_bzoid=$(printf $ZERO_OID | sed -e 's/00/\\0/g')
+_bzoid=$(printf "$ZERO_OID" | sed -e 's/00/\\0/g')
 
 test_expect_success 'fsck notices blob entry pointing to null sha1' '
 	(git init null-blob &&
@@ -436,7 +436,7 @@ test_expect_success 'fsck notices submodule entry pointing to null sha1' '
 
 while read name path pretty; do
 	while read mode type; do
-		: ${pretty:=$path}
+		: "${pretty:=$path}"
 		test_expect_success "fsck notices $pretty as $type" '
 		(
 			git init $name-$type &&
@@ -461,7 +461,7 @@ dot .
 dotdot ..
 dotgit .git
 dotgit-case .GIT
-dotgit-unicode .gI${u200c}T .gI{u200c}T
+dotgit-unicode .gI"${u200c}"T .gI{u200c}T
 dotgit-case2 .Git
 git-tilde1 git~1
 dotgitdot .git.
@@ -516,10 +516,10 @@ create_repo_missing () {
 		git add subdir/file &&
 		git commit -m two &&
 		unrelated=$(echo unrelated | git hash-object --stdin -w) &&
-		git tag -m foo tag $unrelated &&
+		git tag -m foo tag "$unrelated" &&
 		sha1=$(git rev-parse --verify "$1") &&
-		path=$(echo $sha1 | sed 's|..|&/|') &&
-		rm .git/objects/$path
+		path=$(echo "$sha1" | sed 's|..|&/|') &&
+		rm .git/objects/"$path"
 	)
 }
 

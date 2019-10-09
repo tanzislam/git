@@ -3127,7 +3127,7 @@ background_import_then_checkpoint () {
 	exec 9<>V.output
 	rm V.output
 
-	git fast-import $options <&8 >&9 &
+	git fast-import "$options" <&8 >&9 &
 	echo $! >V.pid
 	# We don't mind if fast-import has already died by the time the test
 	# ends.
@@ -3158,7 +3158,7 @@ background_import_then_checkpoint () {
 		echo >&2 "cruft: $output"
 	done
 
-	if test $error -eq 1
+	if test "$error" -eq 1
 	then
 		false
 	fi
