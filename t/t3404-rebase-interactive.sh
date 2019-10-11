@@ -1283,7 +1283,7 @@ rebase_setup_and_clean () {
 		test_might_fail git branch -D $1 &&
 		test_might_fail git rebase --abort
 	" &&
-	git checkout -b $1 ${2:-master}
+	git checkout -b "$1" "${2:-master}"
 }
 
 test_expect_success 'drop' '

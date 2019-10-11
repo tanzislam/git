@@ -15,13 +15,13 @@ nul_match_internal () {
 
 	if test "$matches" = 1
 	then
-		test_expect_success $prereqs "LC_ALL='$lc_all' git grep $extra_flags -f f $flags '$pattern_human' a" "
+		test_expect_success "$prereqs" "LC_ALL='$lc_all' git grep $extra_flags -f f $flags '$pattern_human' a" "
 			printf '$pattern' | q_to_nul >f &&
 			LC_ALL='$lc_all' git grep $extra_flags -f f $flags a
 		"
 	elif test "$matches" = 0
 	then
-		test_expect_success $prereqs "LC_ALL='$lc_all' git grep $extra_flags -f f $flags '$pattern_human' a" "
+		test_expect_success "$prereqs" "LC_ALL='$lc_all' git grep $extra_flags -f f $flags '$pattern_human' a" "
 			>stderr &&
 			printf '$pattern' | q_to_nul >f &&
 			test_must_fail env LC_ALL=\"$lc_all\" git grep $extra_flags -f f $flags a 2>stderr &&
@@ -29,7 +29,7 @@ nul_match_internal () {
 		"
 	elif test "$matches" = P
 	then
-		test_expect_success $prereqs "error, PCRE v2 only: LC_ALL='$lc_all' git grep -f f $flags '$pattern_human' a" "
+		test_expect_success "$prereqs" "error, PCRE v2 only: LC_ALL='$lc_all' git grep -f f $flags '$pattern_human' a" "
 			>stderr &&
 			printf '$pattern' | q_to_nul >f &&
 			test_must_fail env LC_ALL=\"$lc_all\" git grep -f f $flags a 2>stderr &&
