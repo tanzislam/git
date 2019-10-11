@@ -905,7 +905,6 @@ test_expect_success 'running "git rebase -ix git show HEAD"' '
 	test_cmp expected actual
 '
 
-
 test_expect_success 'rebase -ix with several <CMD>' '
 	git reset --hard execute &&
 	set_fake_editor &&
@@ -1277,13 +1276,13 @@ test_expect_success 'rebase --continue removes CHERRY_PICK_HEAD' '
 	test ! -f .git/CHERRY_PICK_HEAD
 '
 
-rebase_setup_and_clean () {
-	test_when_finished "
+rebase_setup_and_clean() {
+  test_when_finished "
 		git checkout master &&
 		test_might_fail git branch -D $1 &&
 		test_might_fail git rebase --abort
 	" &&
-	git checkout -b "$1" "${2:-master}"
+    git checkout -b "$1" "${2:-master}"
 }
 
 test_expect_success 'drop' '

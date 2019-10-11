@@ -45,7 +45,7 @@ test_expect_success 'with no hook' '
 '
 
 # set up fake editor for interactive editing
-cat > fake-editor <<'EOF'
+cat >fake-editor <<'EOF'
 #!/bin/sh
 exit 0
 EOF
@@ -60,8 +60,8 @@ export FAKE_EDITOR
 HOOKDIR="$(git rev-parse --git-dir)/hooks"
 HOOK="$HOOKDIR/prepare-commit-msg"
 mkdir -p "$HOOKDIR"
-echo "#!$SHELL_PATH" > "$HOOK"
-cat >> "$HOOK" <<'EOF'
+echo "#!$SHELL_PATH" >"$HOOK"
+cat >>"$HOOK" <<'EOF'
 
 GIT_DIR=$(git rev-parse --git-dir)
 if test -d "$GIT_DIR/rebase-merge"
@@ -102,7 +102,7 @@ exit 0
 EOF
 chmod +x "$HOOK"
 
-echo dummy template > "$(git rev-parse --git-dir)/template"
+echo dummy template >"$(git rev-parse --git-dir)/template"
 
 test_expect_success 'with hook (-m)' '
 
@@ -212,10 +212,10 @@ test_expect_success 'with hook and editor (merge)' '
 	test "$(git log -1 --pretty=format:%s)" = "merge"
 '
 
-test_rebase () {
-	expect=$1 &&
-	mode=$2 &&
-	test_expect_"$expect" C_LOCALE_OUTPUT "with hook (rebase ${mode:--i})" '
+test_rebase() {
+  expect=$1 &&
+    mode=$2 &&
+    test_expect_"$expect" C_LOCALE_OUTPUT "with hook (rebase ${mode:--i})" '
 		test_when_finished "\
 			git rebase --abort
 			git checkout -f master
@@ -263,7 +263,7 @@ test_expect_success 'with hook and editor (cherry-pick)' '
 	test "$(git log -1 --pretty=format:%s)" = merge
 '
 
-cat > "$HOOK" <<'EOF'
+cat >"$HOOK" <<'EOF'
 #!/bin/sh
 exit 1
 EOF

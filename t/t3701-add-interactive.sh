@@ -4,23 +4,21 @@ test_description='add -i basic tests'
 . ./test-lib.sh
 . "$TEST_DIRECTORY"/lib-terminal.sh
 
-if ! test_have_prereq PERL
-then
-	skip_all='skipping add -i tests, perl not available'
-	test_done
+if ! test_have_prereq PERL; then
+  skip_all='skipping add -i tests, perl not available'
+  test_done
 fi
 
-diff_cmp () {
-	for x
-	do
-		sed  -e '/^index/s/[0-9a-f]*[1-9a-f][0-9a-f]*\.\./1234567../' \
-		     -e '/^index/s/\.\.[0-9a-f]*[1-9a-f][0-9a-f]*/..9abcdef/' \
-		     -e '/^index/s/ 00*\.\./ 0000000../' \
-		     -e '/^index/s/\.\.00*$/..0000000/' \
-		     -e '/^index/s/\.\.00* /..0000000 /' \
-		     "$x" >"$x.filtered"
-	done
-	test_cmp "$1.filtered" "$2.filtered"
+diff_cmp() {
+  for x; do
+    sed -e '/^index/s/[0-9a-f]*[1-9a-f][0-9a-f]*\.\./1234567../' \
+      -e '/^index/s/\.\.[0-9a-f]*[1-9a-f][0-9a-f]*/..9abcdef/' \
+      -e '/^index/s/ 00*\.\./ 0000000../' \
+      -e '/^index/s/\.\.00*$/..0000000/' \
+      -e '/^index/s/\.\.00* /..0000000 /' \
+      "$x" >"$x.filtered"
+  done
+  test_cmp "$1.filtered" "$2.filtered"
 }
 
 test_expect_success 'setup (initial)' '
@@ -93,7 +91,6 @@ test_expect_success 'revert works (commit)' '
 	git add -i </dev/null >output &&
 	grep "unchanged *+3/-0 file" output
 '
-
 
 test_expect_success 'setup expected' '
 	cat >expected <<-\EOF
@@ -249,7 +246,6 @@ test_expect_success FILEMODE 'stage mode but not hunk' '
 	git diff --cached file | grep "new mode" &&
 	git diff          file | grep "+content"
 '
-
 
 test_expect_success FILEMODE 'stage mode and hunk' '
 	git reset --hard &&
